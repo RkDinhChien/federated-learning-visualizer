@@ -9,11 +9,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-// Real aggregator algorithms
+// Real aggregator algorithms with detailed explanations
 const AGGREGATORS = {
   mean: {
     name: "Mean (Baseline)",
-    description: "Simple average of all worker updates - VULNERABLE to Byzantine attacks",
+    description: "Simple average of all worker updates",
+    fullExplanation: "Computes arithmetic mean: (w₁ + w₂ + ... + w₁₀) / 10. NO Byzantine defense - treats all workers equally.",
+    vulnerability: "VULNERABLE: Byzantine worker with 10× gradient contributes 10× weight, completely skewing the average.",
     color: "bg-red-100 text-red-800",
     borderColor: "border-red-300",
     icon: XCircle,
@@ -24,7 +26,9 @@ const AGGREGATORS = {
   },
   trimmed_mean: {
     name: "Trimmed Mean",
-    description: "Remove top & bottom 20% extreme values, then average - MODERATE defense",
+    description: "Remove extreme values (top & bottom 20%), then average",
+    fullExplanation: "Sorts updates, removes 2 smallest and 2 largest values (20% each end), then averages remaining 6 values. Removes obvious outliers.",
+    vulnerability: "MODERATE defense: Works if Byzantine updates are extreme. Fails if attacker sends values close to median.",
     color: "bg-yellow-100 text-yellow-800",
     borderColor: "border-yellow-300",
     icon: CheckCircle,
@@ -38,7 +42,9 @@ const AGGREGATORS = {
   },
   cc: {
     name: "Coordinate-wise Clipping (CC)",
-    description: "Clip updates exceeding threshold τ=0.3 - GOOD defense against extreme values",
+    description: "Clip updates that deviate > τ=0.3 from median",
+    fullExplanation: "For each coordinate: find median, clip any value exceeding |update - median| > 0.3 to median ± 0.3. Prevents extreme values.",
+    vulnerability: "GOOD defense: Bounds Byzantine influence to ±30% of median. Effective against scaling attacks.",
     color: "bg-blue-100 text-blue-800",
     borderColor: "border-blue-300",
     icon: CheckCircle,
@@ -57,7 +63,9 @@ const AGGREGATORS = {
   },
   lfighter: {
     name: "LFighter",
-    description: "Use loss function to detect malicious updates - VERY GOOD defense",
+    description: "Filter updates using loss-based detection",
+    fullExplanation: "Monitors each worker's local loss. Byzantine workers often report suspiciously LOW loss (because they're not optimizing correctly). Filters out updates from workers with loss < 80% of average.",
+    vulnerability: "VERY GOOD defense: Uses auxiliary information (loss) to detect anomalies. Effective even if gradients look normal.",
     color: "bg-green-100 text-green-800",
     borderColor: "border-green-300",
     icon: CheckCircle,
@@ -72,7 +80,9 @@ const AGGREGATORS = {
   },
   faba: {
     name: "FABA",
-    description: "Byzantine-resilient with adaptive filtering - EXCELLENT defense",
+    description: "Adaptive Byzantine-resilient aggregation with iterative filtering",
+    fullExplanation: "Iteratively removes outliers: (1) Compute median, (2) Remove update furthest from median, (3) Repeat until convergence. More sophisticated than simple trimming.",
+    vulnerability: "EXCELLENT defense: Adapts to attack patterns. Robust even against coordinated Byzantine workers.",
     color: "bg-purple-100 text-purple-800",
     borderColor: "border-purple-300",
     icon: Shield,
@@ -212,13 +222,26 @@ export default function AggregationDefenseClient() {
       <Alert className="border-blue-200 bg-blue-50 rounded-2xl">
         <Info className="h-5 w-5 text-blue-600" />
         <AlertDescription className="ml-2">
-          <div className="space-y-2">
-            <p className="font-semibold text-base text-blue-900">How It Works:</p>
-            <p className="text-blue-800 text-sm">
-              Parameter Server collects gradient updates from all workers. 
-              Byzantine workers send <span className="text-red-600 font-bold">malicious updates (5x larger)</span> to corrupt training.
-              <strong> Robust aggregators</strong> detect and filter out these attacks.
-            </p>
+          <div className="space-y-3">
+            <p className="font-semibold text-base text-blue-900">📚 How Byzantine-Robust Aggregation Works:</p>
+            
+            <div className="space-y-2 text-sm text-blue-800">
+              <p><strong>Scenario:</strong> 10 workers (9 honest + 1 Byzantine) send gradient updates to Parameter Server</p>
+              
+              <p><strong>Byzantine Attack:</strong> Malicious worker sends <span className="bg-red-200 px-2 py-0.5 rounded font-mono">5× larger gradients</span> to poison the global model</p>
+              
+              <p><strong>Robust Aggregation:</strong> Instead of simple averaging, robust methods detect and neutralize malicious updates:</p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li><strong>Trimmed Mean:</strong> Removes 20% extreme values (2 smallest + 2 largest)</li>
+                <li><strong>Coordinate Clipping (CC):</strong> Clips values exceeding τ=0.3 from median</li>
+                <li><strong>LFighter:</strong> Filters workers with abnormal loss patterns</li>
+                <li><strong>FABA:</strong> Iteratively removes outliers until convergence</li>
+              </ul>
+              
+              <p className="bg-green-100 px-3 py-2 rounded-lg border border-green-200">
+                <strong>Result:</strong> Model accuracy maintained at <span className="font-mono font-bold">~85-90%</span> vs <span className="font-mono font-bold text-red-600">~65-70%</span> with vulnerable mean aggregation
+              </p>
+            </div>
           </div>
         </AlertDescription>
       </Alert>
@@ -548,10 +571,26 @@ function RealDataComparison() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          Real Experiment Results - Accuracy Comparison
+          📊 Real Experiment Results - Accuracy Comparison
         </CardTitle>
         <CardDescription>
-          Actual training accuracy from SR_MNIST dataset with Label Flipping attack (1 Byzantine / 10 workers)
+          <div className="space-y-2">
+            <p>Actual training accuracy from <strong>SR_MNIST dataset</strong> with <strong>Label Flipping attack</strong></p>
+            <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+              <div className="bg-gray-50 p-2 rounded">
+                <strong>Configuration:</strong> 10 workers (9 honest + 1 Byzantine)
+              </div>
+              <div className="bg-gray-50 p-2 rounded">
+                <strong>Attack:</strong> Byzantine worker flips labels (0↔1, 2↔3, 8↔9)
+              </div>
+              <div className="bg-gray-50 p-2 rounded">
+                <strong>Data:</strong> 60,000 samples, Dirichlet α=1 (non-IID)
+              </div>
+              <div className="bg-gray-50 p-2 rounded">
+                <strong>Training:</strong> 200 rounds × 100 iterations = 20K total
+              </div>
+            </div>
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent>

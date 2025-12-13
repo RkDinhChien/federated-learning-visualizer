@@ -127,28 +127,33 @@ export default function HomePage() {
             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-purple-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Dataset Info</h3>
+            <h3 className="text-lg font-bold text-gray-900">Experiment Configuration</h3>
           </div>
           <div className="grid md:grid-cols-4 gap-6">
             <div>
               <div className="text-xs text-gray-500 mb-1">Dataset</div>
               <div className="text-base font-bold text-gray-900">SR_MNIST</div>
-              <div className="text-xs text-gray-500 mt-1">60,000 samples</div>
+              <div className="text-xs text-gray-500 mt-1">60,000 training samples</div>
+              <div className="text-xs text-gray-500">784 features (28×28 pixels)</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-1">Workers</div>
-              <div className="text-base font-bold text-gray-900">10 Total</div>
+              <div className="text-xs text-gray-500 mb-1">Worker Configuration</div>
+              <div className="text-base font-bold text-gray-900">10 Workers Total</div>
               <div className="text-xs text-gray-500 mt-1">9 Honest + 1 Byzantine</div>
+              <div className="text-xs text-gray-500">10% Byzantine ratio</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-1">Partitions</div>
-              <div className="text-base font-bold text-gray-900">3 Types</div>
-              <div className="text-xs text-gray-500 mt-1">IID, Dirichlet, Label Sep</div>
+              <div className="text-xs text-gray-500 mb-1">Data Partitioning</div>
+              <div className="text-base font-bold text-gray-900">3 Strategies</div>
+              <div className="text-xs text-gray-500 mt-1">IID (uniform)</div>
+              <div className="text-xs text-gray-500">Dirichlet α=1 (non-IID)</div>
+              <div className="text-xs text-gray-500">Label Separation</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-1">Training</div>
+              <div className="text-xs text-gray-500 mb-1">Training Setup</div>
               <div className="text-base font-bold text-gray-900">200 Rounds</div>
-              <div className="text-xs text-gray-500 mt-1">~20K iterations</div>
+              <div className="text-xs text-gray-500 mt-1">~20,000 iterations total</div>
+              <div className="text-xs text-gray-500">LR: 0.01, WD: 0.01</div>
             </div>
           </div>
         </div>

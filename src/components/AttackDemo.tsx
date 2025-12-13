@@ -7,13 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Play, Pause, RotateCcw, AlertTriangle, Shield, Target, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Real data from SR_MNIST experiments (n=10, b=1)
-const HONEST_DISTRIBUTION = [7, 9, 6, 13, 10, 9, 10, 10, 13, 11]; // Percentage for each label 0-9
+// Real data from SR_MNIST experiments (n=10 workers, b=1 Byzantine)
+// These distributions represent actual label percentages in the dataset
+const HONEST_DISTRIBUTION = [7, 9, 6, 13, 10, 9, 10, 10, 13, 11]; // Honest worker's label distribution (%)
 
 interface AttackPattern {
   name: string;
   description: string;
   category: string;
+  explanation: string; // Detailed explanation of attack mechanism
+  impact: string; // Expected impact on model
   transformations: Array<{ from: number; to: number; color: string; scale?: string }>;
   poisonedDist: number[];
   gradientScale?: number;
@@ -22,8 +25,10 @@ interface AttackPattern {
 const ATTACK_PATTERNS: Record<string, AttackPattern> = {
   label_flipping: {
     name: "Label Flipping Attack",
-    description: "Byzantine worker swaps specific label pairs to confuse the model",
+    description: "Byzantine worker swaps specific label pairs (0↔1, 2↔3, 8↔9) to inject wrong labels into training",
     category: "Data Poisoning",
+    explanation: "The attacker modifies training labels before sending gradients. For example, all images labeled '0' are changed to '1' and vice versa. This creates contradictory training signals that confuse the global model.",
+    impact: "Accuracy drops by 5-15% depending on aggregator robustness. Non-robust aggregators (mean) are heavily affected.",
     transformations: [
       { from: 0, to: 1, color: "bg-red-100" },
       { from: 1, to: 0, color: "bg-red-100" },
@@ -31,12 +36,14 @@ const ATTACK_PATTERNS: Record<string, AttackPattern> = {
       { from: 3, to: 2, color: "bg-orange-100" },
       { from: 8, to: 9, color: "bg-yellow-100" }
     ],
-    poisonedDist: [9, 7, 13, 6, 10, 9, 10, 10, 6, 15]
+    poisonedDist: [9, 7, 13, 6, 10, 9, 10, 10, 6, 15] // Distribution after label swapping
   },
   furthest_label_flipping: {
     name: "Furthest Label Flipping Attack",
-    description: "Byzantine worker flips ALL labels to their furthest/opposite labels - more aggressive!",
+    description: "Byzantine worker flips ALL labels to their maximally distant labels (0→5, 1→6, etc.) - most aggressive data poisoning",
     category: "Data Poisoning",
+    explanation: "Instead of simple swaps, this attack maps each label to its 'opposite' class (distance of 5). For digits 0-4, labels become 5-9 and vice versa. This maximizes confusion in the feature space.",
+    impact: "Accuracy drops by 10-25%. Even robust aggregators struggle as ALL labels are corrupted. Model may converge to random guessing (~10% accuracy).",
     transformations: [
       { from: 0, to: 5, color: "bg-red-200" },
       { from: 1, to: 6, color: "bg-red-200" },
@@ -49,26 +56,30 @@ const ATTACK_PATTERNS: Record<string, AttackPattern> = {
       { from: 8, to: 3, color: "bg-blue-200" },
       { from: 9, to: 4, color: "bg-purple-200" }
     ],
-    poisonedDist: [9, 10, 10, 10, 9, 7, 9, 6, 13, 13]
+    poisonedDist: [9, 10, 10, 10, 9, 7, 9, 6, 13, 13] // All labels redistributed
   },
   gradient_scaling: {
     name: "Gradient Scaling Attack",
-    description: "Byzantine worker sends 10x larger gradients to dominate aggregation",
+    description: "Byzantine worker multiplies gradient magnitude by 10× to dominate the aggregation process",
     category: "Model Poisoning",
+    explanation: "Instead of modifying data labels, the attacker sends artificially large gradients (10× normal magnitude). During aggregation, these large values can overwhelm honest workers' contributions, especially with simple mean aggregation.",
+    impact: "Can completely destabilize training if aggregator is non-robust. Loss may diverge to infinity. Robust aggregators (trimmed mean, CC) clip or reject these extreme values.",
     transformations: [
-      { from: 0, to: 0, color: "bg-purple-100", scale: "10x" }
+      { from: 0, to: 0, color: "bg-purple-100", scale: "10×" }
     ],
-    poisonedDist: HONEST_DISTRIBUTION, // Same distribution but scaled gradients
+    poisonedDist: HONEST_DISTRIBUTION, // Same label distribution, but scaled gradients
     gradientScale: 10
   },
   sign_flipping: {
     name: "Sign Flipping Attack",
-    description: "Byzantine worker flips gradient signs to push model in opposite direction",
-    category: "Model Poisoning",
+    description: "Byzantine worker inverts gradient signs (×−1) to push model optimization in opposite direction",
+    category: "Model Poisoning", 
+    explanation: "The attacker multiplies all gradient values by -1. While honest workers push model toward lower loss, the Byzantine worker pushes it toward HIGHER loss. This is equivalent to performing gradient descent in reverse.",
+    impact: "Training fails to converge. Model accuracy stagnates or decreases. Robust aggregators can detect and filter out gradients with opposite signs.",
     transformations: [
-      { from: 0, to: 0, color: "bg-pink-100", scale: "-1x" }
+      { from: 0, to: 0, color: "bg-pink-100", scale: "−1×" }
     ],
-    poisonedDist: HONEST_DISTRIBUTION, // Same distribution but negated gradients
+    poisonedDist: HONEST_DISTRIBUTION, // Same label distribution, but negated gradients
     gradientScale: -1
   }
 };
@@ -131,18 +142,37 @@ export default function AttackDemo() {
       </div>
 
       {/* Attack Explanation */}
-      <Alert>
+      <Alert className="border-l-4" style={{ borderLeftColor: attack.category === "Data Poisoning" ? "#ef4444" : "#a855f7" }}>
         <AlertTriangle className="h-5 w-5" />
         <AlertDescription className="ml-2">
-          <div className="space-y-2">
-            <p className="font-semibold text-lg">{attack.name}</p>
-            <p>{attack.description}</p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {attack.transformations.map((t, i) => (
-                <Badge key={i} variant="outline" className={`${t.color} px-3 py-1`}>
-                  Label {t.from} → {t.to}
-                </Badge>
-              ))}
+          <div className="space-y-3">
+            <div>
+              <p className="font-semibold text-lg">{attack.name}</p>
+              <p className="text-sm mt-1">{attack.description}</p>
+            </div>
+            
+            {/* Mechanism Explanation */}
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <p className="text-xs font-semibold text-gray-700 mb-1">⚙️ Attack Mechanism:</p>
+              <p className="text-sm text-gray-700">{attack.explanation}</p>
+            </div>
+
+            {/* Expected Impact */}
+            <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+              <p className="text-xs font-semibold text-yellow-800 mb-1">📉 Expected Impact:</p>
+              <p className="text-sm text-yellow-800">{attack.impact}</p>
+            </div>
+
+            {/* Transformations */}
+            <div>
+              <p className="text-xs font-semibold text-gray-700 mb-2">Label Transformations:</p>
+              <div className="flex flex-wrap gap-2">
+                {attack.transformations.map((t, i) => (
+                  <Badge key={i} variant="outline" className={`${t.color} px-3 py-1`}>
+                    {t.scale ? `Gradient ${t.scale}` : `${t.from} → ${t.to}`}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         </AlertDescription>
