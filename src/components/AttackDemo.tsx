@@ -142,6 +142,39 @@ export default function AttackDemo() {
         </p>
       </div>
 
+      {/* Quick Guide - NEW */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            📖 How to Use This Page
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-white p-3 rounded-lg border">
+              <div className="font-semibold text-blue-900 mb-2">1️⃣ Select Attack Type</div>
+              <p className="text-xs text-gray-600">
+                Choose one of 4 Byzantine attacks from the buttons below. Each attack has different impact.
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border">
+              <div className="font-semibold text-purple-900 mb-2">2️⃣ Click Play ▶️</div>
+              <p className="text-xs text-gray-600">
+                Watch the animation - bars will turn RED showing poisoned data. Numbers show transformations (e.g., 0→1).
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border">
+              <div className="font-semibold text-green-900 mb-2">3️⃣ Compare Charts</div>
+              <p className="text-xs text-gray-600">
+                <strong>Left (Blue)</strong> = Honest workers
+                <br/>
+                <strong>Right (Red)</strong> = Byzantine attacker
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Attack Explanation */}
       <Alert className="border-l-4" style={{ borderLeftColor: attack.category === "Data Poisoning" ? "#ef4444" : "#a855f7" }}>
         <AlertTriangle className="h-5 w-5" />
@@ -182,87 +215,129 @@ export default function AttackDemo() {
       {/* Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Simulation Controls</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            🎮 Simulation Controls
+            <Badge className="ml-auto bg-blue-600">Step 1: Choose Attack</Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Attack Type Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Attack Type:</label>
+            <label className="text-sm font-medium">Select Attack Type to Simulate:</label>
             <div className="grid grid-cols-2 gap-3">
               <Button
                 variant={attackType === 'label_flipping' ? 'default' : 'outline'}
                 onClick={() => setAttackType('label_flipping')}
                 disabled={isPlaying}
-                className="justify-start"
+                className="justify-start h-auto py-3 flex-col items-start"
               >
-                <Target className="mr-2 h-4 w-4" />
-                Label Flipping
-              </Button>
               <Button
                 variant={attackType === 'furthest_label_flipping' ? 'default' : 'outline'}
                 onClick={() => setAttackType('furthest_label_flipping')}
                 disabled={isPlaying}
-                className="justify-start"
+                className="justify-start h-auto py-3 flex-col items-start"
               >
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Furthest Label
+                <div className="flex items-center gap-2 w-full">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="font-semibold">Furthest Label</span>
+                </div>
+                <span className="text-xs text-left mt-1 opacity-80">
+                  Maps to opposite classes (0→5, 1→6, 2→7...)
+                </span>
               </Button>
               <Button
                 variant={attackType === 'gradient_scaling' ? 'default' : 'outline'}
                 onClick={() => setAttackType('gradient_scaling')}
                 disabled={isPlaying}
-                className="justify-start"
+                className="justify-start h-auto py-3 flex-col items-start"
               >
-                <ArrowRight className="mr-2 h-4 w-4 rotate-45" />
-                Gradient Scaling
+                <div className="flex items-center gap-2 w-full">
+                  <ArrowRight className="h-4 w-4 rotate-45" />
+                  <span className="font-semibold">Gradient Scaling</span>
+                </div>
+                <span className="text-xs text-left mt-1 opacity-80">
+                  Sends 10× larger gradients to dominate
+                </span>
               </Button>
               <Button
                 variant={attackType === 'sign_flipping' ? 'default' : 'outline'}
                 onClick={() => setAttackType('sign_flipping')}
                 disabled={isPlaying}
-                className="justify-start"
+                className="justify-start h-auto py-3 flex-col items-start"
               >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Sign Flipping
+                <div className="flex items-center gap-2 w-full">
+                  <RotateCcw className="h-4 w-4" />
+                  <span className="font-semibold">Sign Flipping</span>
+                </div>
+                <span className="text-xs text-left mt-1 opacity-80">
+                  Reverses gradient direction (×-1)
+                </span>
               </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <Badge variant="outline" className="mr-2">{attack.category}</Badge>
-              {attack.description}
-            </p>
-          </div>
-
           {/* Playback Controls */}
-          <div className="flex gap-2 items-center">
-            <Button onClick={() => setIsPlaying(!isPlaying)}>
-              {isPlaying ? (
-                <>
-                  <Pause className="mr-2 h-4 w-4" />
-                  Pause
-                </>
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">Animation Control:</label>
+              <Badge className="bg-purple-600">Step 2: Play Animation</Badge>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Button onClick={() => setIsPlaying(!isPlaying)} className="bg-green-600 hover:bg-green-700">
+                {isPlaying ? (
+                  <>
+                    <Pause className="mr-2 h-4 w-4" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Play Animation
+                  </>
+                )}
+              </Button>
+              <Button onClick={handleReset} variant="outline">
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+              <div className="ml-auto text-sm bg-gray-100 px-3 py-1 rounded-lg">
+                <span className="font-medium">Progress:</span> {currentStep} / {maxSteps}
+                <span className="mx-2">|</span>
+                <span className="text-red-600 font-medium">Byzantine Worker: #{byzantineWorker}</span>
+              </div>
+            </div>
+            {isPlaying && (
+              <div className="mt-2 text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                ▶️ Animation playing... Watch the RIGHT chart turn RED as labels are poisoned!
+              </div>
+            )}
+          </div></>
               ) : (
                 <>
                   <Play className="mr-2 h-4 w-4" />
                   Play
                 </>
-              )}
-            </Button>
-            <Button onClick={handleReset} variant="outline">
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Reset
-            </Button>
-            <div className="ml-auto text-sm text-muted-foreground">
-              Step: {currentStep} / {maxSteps} | Byzantine Worker: #{byzantineWorker}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Workers Visualization */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Before Attack - Honest Workers */}
-        <Card className="border-green-200">
-          <CardHeader>
+        <Card className="border-green-200 border-2">
+          <CardHeader className="bg-green-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-green-600" />
+                <CardTitle>Honest Workers (9/10)</CardTitle>
+              </div>
+              <Badge className="bg-green-600">✅ NORMAL</Badge>
+            </div>
+            <CardDescription>
+              Normal label distribution - unmodified training data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Label Distribution Chart */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Label Distribution:</p>
+                  <span className="text-xs text-gray-500">Height = % of each digit (0-9)</span>
+                </div>
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-green-600" />
               <CardTitle>Honest Workers (9/10)</CardTitle>
