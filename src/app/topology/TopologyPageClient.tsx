@@ -9,7 +9,6 @@ import PartitionDemo from '@/components/PartitionDemo';
 import { ControlPanel } from '@/components/ControlPanel';
 import { RunCharts } from '@/components/RunCharts';
 import { MetaCard } from '@/components/MetaCard';
-import AnimationExplainer from '@/components/AnimationExplainer';
 
 interface TopologyPageClientProps {
   runs: RunData[];
@@ -109,27 +108,27 @@ export default function TopologyPageClient({ runs, partitions }: TopologyPageCli
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
             <div className="bg-white p-3 rounded-lg border border-blue-200">
-              <p className="font-semibold text-blue-900 mb-1">① Nhấn Play ▶️</p>
-              <p className="text-xs text-gray-700">Xem workers (tròn xanh) gửi gradients lên server (vuông đỏ)</p>
+              <p className="font-semibold text-blue-900 mb-1">① Hiểu Sơ Đồ Mạng</p>
+              <p className="text-xs text-gray-700">Vuông tím = Server | Tròn xanh = Workers trung thực | Tròn đỏ = Byzantine</p>
             </div>
             <div className="bg-white p-3 rounded-lg border border-purple-200">
-              <p className="font-semibold text-purple-900 mb-1">② Quan Sát Animation</p>
-              <p className="text-xs text-gray-700">Chấm nhỏ chạy từ workers → server = đang gửi dữ liệu huấn luyện</p>
+              <p className="font-semibold text-purple-900 mb-1">② Nhấn Play ▶️</p>
+              <p className="text-xs text-gray-700">Xem Round/Iteration tăng lên → Biểu đồ bên dưới thay đổi</p>
             </div>
             <div className="bg-white p-3 rounded-lg border border-green-200">
-              <p className="font-semibold text-green-900 mb-1">③ Xem Biểu Đồ</p>
-              <p className="text-xs text-gray-700">Đường màu theo dõi độ chính xác qua từng vòng (Round)</p>
+              <p className="font-semibold text-green-900 mb-1">③ Xem Biểu Đồ Training</p>
+              <p className="text-xs text-gray-700">Đường màu = độ chính xác qua các vòng (không phải topology)</p>
             </div>
             <div className="bg-white p-3 rounded-lg border border-orange-200">
               <p className="font-semibold text-orange-900 mb-1">④ So Sánh Runs</p>
-              <p className="text-xs text-gray-700">Chọn các thí nghiệm khác nhau để thấy sự khác biệt</p>
+              <p className="text-xs text-gray-700">Chọn thí nghiệm khác ở Control Panel bên trái</p>
             </div>
           </div>
           <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
             <p className="text-yellow-800">
-              <strong>💡 Ý Nghĩa:</strong> Topology = cấu trúc mạng lưới. Mỗi worker có dữ liệu riêng, 
-              gửi gradient lên server. Server tổng hợp (aggregate) và cập nhật model. 
-              Nếu có Byzantine worker (tròn đỏ) → gửi dữ liệu độc hại!
+              <strong>💡 Lưu ý:</strong> Topology này là <strong>SƠ ĐỒ TĨNH</strong> - không có animation workers di chuyển. 
+              Để thấy quá trình huấn luyện, hãy nhấn Play và <strong>XEM BIỂU ĐỒ BÊN DƯỚI</strong> (đường Training Loss, Test Accuracy...). 
+              Mỗi Round = 1 lần tất cả workers gửi gradients → server tổng hợp → cập nhật model.
             </p>
           </div>
         </div>
@@ -247,14 +246,6 @@ export default function TopologyPageClient({ runs, partitions }: TopologyPageCli
 
           {/* Right Column - Visualizations */}
           <div className="col-span-9 space-y-5">
-            {/* Animation Explainer - NEW */}
-            <AnimationExplainer
-              currentIteration={currentIteration}
-              isPlaying={isPlaying}
-              byzantineCount={selectedRun.meta.byzantine_size}
-              aggregator={aggregator}
-            />
-
             {/* Partition Demo */}
             {showPartitionDemo && partition && (
               <PartitionDemo
