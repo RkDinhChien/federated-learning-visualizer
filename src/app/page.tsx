@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { Layers, BarChart3, Shield, Target } from 'lucide-react';
+import OnboardingGuide from '@/components/OnboardingGuide';
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <OnboardingGuide />
+      <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Welcome Section */}
         <div className="mb-8">
           <div className="inline-block px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-medium mb-4">
