@@ -8,6 +8,7 @@ import { Play, Pause, RotateCcw, Shield, AlertTriangle, CheckCircle, XCircle, Tr
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import ChartLegend from '@/components/ChartLegend';
 
 // Real aggregator algorithms with detailed explanations
 const AGGREGATORS = {

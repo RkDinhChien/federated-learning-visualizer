@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Pause, RotateCcw, AlertTriangle, Shield, Target, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ChartLegend from '@/components/ChartLegend';
 
 // Real data from SR_MNIST experiments (n=10 workers, b=1 Byzantine)
 // These distributions represent actual label percentages in the dataset

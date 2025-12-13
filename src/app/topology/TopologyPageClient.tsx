@@ -9,6 +9,7 @@ import PartitionDemo from '@/components/PartitionDemo';
 import { ControlPanel } from '@/components/ControlPanel';
 import { RunCharts } from '@/components/RunCharts';
 import { MetaCard } from '@/components/MetaCard';
+import AnimationExplainer from '@/components/AnimationExplainer';
 
 interface TopologyPageClientProps {
   runs: RunData[];
@@ -213,6 +214,14 @@ export default function TopologyPageClient({ runs, partitions }: TopologyPageCli
 
           {/* Right Column - Visualizations */}
           <div className="col-span-9 space-y-5">
+            {/* Animation Explainer - NEW */}
+            <AnimationExplainer
+              currentIteration={currentIteration}
+              isPlaying={isPlaying}
+              byzantineCount={selectedRun.meta.byzantine_size}
+              aggregator={aggregator}
+            />
+
             {/* Partition Demo */}
             {showPartitionDemo && partition && (
               <PartitionDemo
