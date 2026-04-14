@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, ArrowRight, CheckCircle } from 'lucide-react';
+import { X, ArrowRight, CheckCircle, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -9,39 +9,33 @@ interface OnboardingStep {
   title: string;
   description: string;
   visual: string;
-  emoji: string;
 }
 
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    title: "Welcome to Federated Learning!",
+    title: "Welcome to Federated Learning",
     description: "Federated Learning lets multiple devices train a shared model WITHOUT sharing their private data. Like Google Keyboard learning from millions of phones without seeing your messages!",
-    visual: "📱 + 📱 + 📱 → 🤖 (Global Model)",
-    emoji: "👋"
+    visual: "Client Devices + Client Devices + Client Devices → Global Model"
   },
   {
     title: "How It Works - 6 Steps",
-    description: "1️⃣ Server sends model to 10 workers\n2️⃣ Each worker trains on local data\n3️⃣ Workers compute gradients (updates)\n4️⃣ Upload gradients to server\n5️⃣ Server aggregates (averages) them\n6️⃣ Update global model → Repeat!",
-    visual: "Workers 🔵🔵🔵 → Server 🟣 → Model 🤖",
-    emoji: "🔄"
+    description: "1. Server sends model to 10 workers\n2. Each worker trains on local data\n3. Workers compute gradients (updates)\n4. Upload gradients to server\n5. Server aggregates (averages) them\n6. Update global model and repeat.",
+    visual: "Workers → Server Aggregation → Updated Global Model"
   },
   {
     title: "The Problem: Byzantine Attacks",
     description: "1 out of 10 workers can be MALICIOUS (hacked or evil). They send poisoned gradients to sabotage the model. Result: Accuracy drops from 90% → 65%!",
-    visual: "🔵🔵🔵🔵🔵🔵🔵🔵🔵 + 🔴 → 💥",
-    emoji: "⚠️"
+    visual: "9 Honest Workers + 1 Byzantine Worker → Model Degradation"
   },
   {
     title: "The Solution: Robust Aggregation",
     description: "Instead of simple average, use SMART aggregators:\n• Trimmed Mean: Remove extremes\n• CC: Clip outliers\n• LFighter: Use loss info\n• FABA: Iterative filtering\n\nResult: Accuracy stays 85-90%!",
-    visual: "🛡️ Filter outliers → ✅ Defended",
-    emoji: "🛡️"
+    visual: "Outlier Filtering → Robust Global Update"
   },
   {
     title: "Explore the App",
-    description: "🎯 Attack Demo: See 4 attack types animated\n🛡️ Defense: Compare 5 robust aggregators\n🔬 Topology: Watch training in real-time\n📊 Compare: Analyze experiment results\n\nAll data is REAL from 20,000 training iterations!",
-    visual: "Ready to explore? →",
-    emoji: "🚀"
+    description: "Attack Demo: See 4 attack types in motion\nDefense: Compare 5 robust aggregators\nTopology: Monitor training workflow\nCompare: Analyze experimental results\n\nAll data comes from 20,000 real training iterations.",
+    visual: "Ready to explore"
   }
 ];
 
@@ -95,7 +89,7 @@ export default function OnboardingGuide() {
         className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all z-50"
         title="Show workflow guide"
       >
-        <span className="text-lg">📚</span>
+        <BookOpen className="w-4 h-4" />
         <span className="text-sm font-medium">How It Works</span>
       </button>
     );
@@ -134,11 +128,6 @@ export default function OnboardingGuide() {
 
           {/* Content */}
           <div className="text-center mb-8">
-            {/* Emoji */}
-            <div className="text-6xl mb-4 animate-bounce">
-              {currentStepData.emoji}
-            </div>
-
             {/* Title */}
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               {currentStepData.title}

@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "start-dev": "./start-dev.sh",
+    "start-dev": "./scripts/start-dev.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "vercel-build": "next build",
-    "prepare-deploy": "./prepare-deploy.sh"
+    "prepare-deploy": "./scripts/prepare-deploy.sh"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.3",

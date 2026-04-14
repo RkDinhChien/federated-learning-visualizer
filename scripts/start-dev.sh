@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script tự động khởi động dev server
-# Sử dụng: npm run start hoặc ./start-dev.sh
+# Sử dụng: npm run start-dev hoặc ./scripts/start-dev.sh
 
 echo "🚀 Đang khởi động Federated Learning Visualizer..."
 

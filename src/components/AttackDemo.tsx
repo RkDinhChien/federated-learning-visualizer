@@ -134,7 +134,7 @@ export default function AttackDemo() {
       {/* Header */}
       <div className="space-y-3">
         <div className="inline-block px-4 py-2 bg-red-100 rounded-full text-sm font-medium mb-2">
-          ⚠️ Security Analysis
+          Security Analysis
         </div>
         <h1 className="text-3xl font-bold">Attack Demo</h1>
         <p className="text-gray-600 text-base">
@@ -146,24 +146,24 @@ export default function AttackDemo() {
       <Alert className="border-purple-200 bg-purple-50">
         <AlertTriangle className="h-4 w-4 text-purple-600" />
         <AlertDescription>
-          <p className="font-semibold text-purple-900 mb-3">📖 Hướng Dẫn Nhanh - Cách Nhận Biết Tấn Công:</p>
+          <p className="font-semibold text-purple-900 mb-3">Hướng Dẫn Nhanh - Cách Nhận Biết Tấn Công:</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
             <div className="bg-blue-100 p-3 rounded-lg border border-blue-200">
-              <p className="font-semibold text-blue-900 mb-1">① Chọn Loại Tấn Công</p>
+              <p className="font-semibold text-blue-900 mb-1">Bước 1: Chọn Loại Tấn Công</p>
               <p className="text-xs text-blue-700">Mỗi loại có cách phá hoại khác nhau (đổi nhãn, phóng đại gradient...)</p>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg border border-purple-200">
-              <p className="font-semibold text-purple-900 mb-1">② Nhấn Play ▶️</p>
+              <p className="font-semibold text-purple-900 mb-1">Bước 2: Nhấn Play</p>
               <p className="text-xs text-purple-700">Xem Worker 2 "Turned" → chuyển sang ATTACKING → dữ liệu BỊ ĐỘC</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg border border-green-200">
-              <p className="font-semibold text-green-900 mb-1">③ So Sánh 2 Biểu Đồ</p>
+              <p className="font-semibold text-green-900 mb-1">Bước 3: So Sánh 2 Biểu Đồ</p>
               <p className="text-xs text-green-700">TRÁI (xanh) = bình thường | PHẢI (đỏ) = bị tấn công → các cột ĐỔI MÀU ĐỎ</p>
             </div>
           </div>
           <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
             <p className="text-xs text-yellow-800">
-              <strong>💡 Ý Nghĩa:</strong> Worker chạy từ TRÁI → PHẢI = worker đó bị "lật" thành Byzantine → 
+              <strong>Ý Nghĩa:</strong> Worker chạy từ TRÁI → PHẢI = worker đó bị "lật" thành Byzantine → 
               gửi dữ liệu độc hại. Các số <span className="text-red-600 font-bold">ĐỎ</span> trên biểu đồ PHẢI = 
               phần trăm bị thay đổi bởi tấn công (ví dụ: nhãn 0↔1, 8↔9).
             </p>
@@ -421,7 +421,7 @@ export default function AttackDemo() {
                 {/* Legend explaining the changes */}
                 {currentStep > 0 && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs">
-                    <p className="font-semibold text-red-900 mb-2">🔴 Những gì đã thay đổi:</p>
+                    <p className="font-semibold text-red-900 mb-2">Những gì đã thay đổi:</p>
                     <div className="grid grid-cols-1 gap-2">
                       {attack.transformations.map((t, i) => (
                         <div key={i} className={`p-2 ${t.color} rounded border`}>
@@ -435,7 +435,7 @@ export default function AttackDemo() {
                               <span className="text-red-600 mx-1">→ bị đổi thành →</span> 
                               <span className="font-semibold">Nhãn {t.to}</span>
                               <div className="text-[10px] text-gray-600 mt-1">
-                                ⚠️ Ảnh hưởng: Cột {t.from} giảm, cột {t.to} tăng lên
+                                Ảnh hưởng: Cột {t.from} giảm, cột {t.to} tăng lên
                               </div>
                             </div>
                           )}

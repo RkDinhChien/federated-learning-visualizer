@@ -10,10 +10,10 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-8">
           <div className="inline-block px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-medium mb-4">
-            🎯 Federated Learning Research
+            Federated Learning Research
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Welcome back! 👋
+            Welcome Back
           </h1>
           <p className="text-lg text-gray-600">
             Explore Byzantine attacks and defense mechanisms in federated learning

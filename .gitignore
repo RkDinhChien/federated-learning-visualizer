@@ -36,3 +36,9 @@ next-env.d.ts
 /src/components-old
 /src/types-old.ts
 public/data/
+
+# VFL Python Environment
+vfl_base/venv
+vfl_base/.venv
+vfl_base/data
+vfl_base/__pycache__

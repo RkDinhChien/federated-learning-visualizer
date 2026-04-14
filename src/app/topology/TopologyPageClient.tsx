@@ -104,29 +104,29 @@ export default function TopologyPageClient({ runs, partitions }: TopologyPageCli
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-4 mb-5">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Layers className="h-5 w-5" />
-            📖 Hướng Dẫn Xem Topology - Mạng Lưới Huấn Luyện
+            Hướng Dẫn Xem Topology - Mạng Lưới Huấn Luyện
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
             <div className="bg-white p-3 rounded-lg border border-blue-200">
-              <p className="font-semibold text-blue-900 mb-1">① Hiểu Sơ Đồ Mạng</p>
+              <p className="font-semibold text-blue-900 mb-1">Bước 1: Hiểu Sơ Đồ Mạng</p>
               <p className="text-xs text-gray-700">Vuông tím = Server | Tròn xanh = Workers trung thực | Tròn đỏ = Byzantine</p>
             </div>
             <div className="bg-white p-3 rounded-lg border border-purple-200">
-              <p className="font-semibold text-purple-900 mb-1">② Nhấn Play ▶️</p>
+              <p className="font-semibold text-purple-900 mb-1">Bước 2: Nhấn Play</p>
               <p className="text-xs text-gray-700">Xem Round/Iteration tăng lên → Biểu đồ bên dưới thay đổi</p>
             </div>
             <div className="bg-white p-3 rounded-lg border border-green-200">
-              <p className="font-semibold text-green-900 mb-1">③ Xem Biểu Đồ Training</p>
+              <p className="font-semibold text-green-900 mb-1">Bước 3: Xem Biểu Đồ Training</p>
               <p className="text-xs text-gray-700">Đường màu = độ chính xác qua các vòng (không phải topology)</p>
             </div>
             <div className="bg-white p-3 rounded-lg border border-orange-200">
-              <p className="font-semibold text-orange-900 mb-1">④ So Sánh Runs</p>
+              <p className="font-semibold text-orange-900 mb-1">Bước 4: So Sánh Runs</p>
               <p className="text-xs text-gray-700">Chọn thí nghiệm khác ở Control Panel bên trái</p>
             </div>
           </div>
           <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
             <p className="text-yellow-800">
-              <strong>💡 Lưu ý:</strong> Topology này là <strong>SƠ ĐỒ TĨNH</strong> - không có animation workers di chuyển. 
+              <strong>Lưu ý:</strong> Topology này là <strong>SƠ ĐỒ TĨNH</strong> - không có animation workers di chuyển. 
               Để thấy quá trình huấn luyện, hãy nhấn Play và <strong>XEM BIỂU ĐỒ BÊN DƯỚI</strong> (đường Training Loss, Test Accuracy...). 
               Mỗi Round = 1 lần tất cả workers gửi gradients → server tổng hợp → cập nhật model.
             </p>

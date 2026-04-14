@@ -1,188 +1,245 @@
-# Federated Learning Visualizer - Next.js 15
+# Vertical Federated Learning (VFL) - Base Implementation
 
-A modern, interactive web application for visualizing federated learning experiments built with **Next.js 15**, **React 18**, and **TypeScript**.
+## 📋 Project Overview
 
-## 🚀 Features
+This is **GIAI ĐOẠN 1: XÂY DỰNG NỀN TẢNG (BASE VFL)** - a foundational implementation of Vertical Federated Learning using Split Learning.
 
-- **Next.js 15** with App Router and React Server Components
-- **TypeScript** with strict mode for enhanced type safety
-- **Real SR_MNIST Data Integration** - Load and visualize actual experimental results
-- **Interactive Visualizations** - Dynamic charts powered by Recharts
-- **Modern UI** - Built with Tailwind CSS and Radix UI components
-- **Comparative Analysis** - Compare multiple experimental runs side-by-side
-- **Server-Side Data Loading** - Efficient data fetching with async/await
+**Objective**: Build a working VFL system where:
+- **Loss decreases** as epochs progress
+- **Accuracy increases** from baseline to higher values
+- No attacks, no defenses (just the pure base system)
 
-## 📦 Tech Stack
+## 🏗️ Architecture
 
-- **Framework:** Next.js 15.5.7 (Latest)
-- **UI Library:** React 18.3.1
-- **Language:** TypeScript 5.7.2
-- **Styling:** Tailwind CSS 3.4.17
-- **Charts:** Recharts 2.15.2
-- **UI Components:** Radix UI
-- **Icons:** Lucide React
+### Key Concepts
+- **Vertical Partitioning**: CIFAR-10 images are split vertically into:
+  - **Half A** (3 × 32 × 16): Server's portion
+  - **Half B** (3 × 32 × 16): Client's portion (Passive Participant)
 
-## 🛠️ Installation
+- **Split Learning**: The model is split between Client and Server:
+  - **Client (Bảo)**: Bottom Model - processes Half B, generates embeddings (no labels)
+  - **Server (Chiến)**: 
+    - Bottom Model - processes Half A, generates embeddings
+    - Top Model - FCNN-4 that receives concatenated embeddings, computes loss
+
+### Training Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Each Training Step:                                         │
+├─────────────────────────────────────────────────────────────┤
+│ 1. Client Forward:                                          │
+│    half_B → BottomModel_Client → o_client (embedding)     │
+│                                                             │
+│ 2. Server Forward:                                          │
+│    half_A → BottomModel_Server → o_server (embedding)     │
+│    [o_server || o_client] → TopModel → logits             │
+│    CrossEntropyLoss(logits, labels) → loss                │
+│                                                             │
+│ 3. Server Backward:                                         │
+│    loss.backward() → g_client (gradient for client)        │
+│    Update Server's weights                                 │
+│                                                             │
+│ 4. Client Backward:                                         │
+│    Receive g_client from Server                            │
+│    Backprop through Client's BottomModel                   │
+│    Update Client's weights                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 📂 File Structure
+
+```
+vfl_base/
+├── dataset.py           # VFL CIFAR-10 dataset with vertical partitioning
+├── client_bao.py        # Client (Passive Participant) - Bottom Model
+├── server_chien.py      # Server (Active Participant) - Bottom + Top Models
+├── main.py              # Training loop with Split Learning
+├── requirements.txt     # Python dependencies
+└── README.md            # This file
+```
+
+## 🚀 Quick Start
+
+### Step 1: Install Dependencies
 
 ```bash
-npm install
+cd vfl_base
+pip install -r requirements.txt
 ```
 
-## 🚀 Development
-
-Start the development server:
+### Step 2: Run Training
 
 ```bash
-npm run dev
+python main.py
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+### Expected Output
 
-## 📊 Data Structure
-
-The application loads data from `data/SR_MNIST/Centralized_n=10_b=1/`:
-
-- **index.json** - Main index mapping all experiments
-- **Partition folders** - Contains experimental runs organized by data partition strategy:
-  - DirichletPartition_alpha=1
-  - iidPartition  
-  - LabelSeperation
-- **Run files** - Each run has metadata and iteration data in JSON format
-
-### Data Format
-
-Each experiment run includes:
-- **Metadata**: Optimizer, attack type, aggregator, worker configuration
-- **Iterations**: Training metrics (accuracy, loss, learning rate) at each iteration
-- **Statistics**: Aggregated statistics across the entire run
-
-## 🏗️ Project Structure
+You should see something like:
 
 ```
-├── src/
-│   ├── app/              # Next.js app router pages
-│   │   ├── layout.tsx    # Root layout
-│   │   ├── page.tsx      # Home page
-│   │   ├── globals.css   # Global styles
-│   │   ├── topology/     # Topology visualization page
-│   │   │   ├── page.tsx  # Server component
-│   │   │   └── TopologyPageClient.tsx  # Client component
-│   │   └── compare/      # Comparison page
-│   │       ├── page.tsx  # Server component
-│   │       └── ComparePageClient.tsx  # Client component
-│   ├── components/       # React components
-│   │   ├── ControlPanel.tsx     # Experiment controls
-│   │   ├── MetaCard.tsx         # Experiment metadata display
-│   │   ├── NetworkViz.tsx       # Network topology visualization
-│   │   ├── RunCharts.tsx        # Single run charts
-│   │   ├── ComparisonCharts.tsx # Multi-run comparison
-│   │   └── MetricsTable.tsx     # Detailed metrics table
-│   ├── lib/             # Utility libraries
-│   │   └── dataLoader.ts # Data loading service
-│   └── types.ts         # TypeScript type definitions
-├── data/                # Experimental data (SR_MNIST)
-├── public/              # Static assets
-├── next.config.ts       # Next.js configuration
-├── tailwind.config.ts   # Tailwind CSS configuration
-└── tsconfig.json        # TypeScript configuration
+======================================================================
+VERTICAL FEDERATED LEARNING (VFL) - BASE IMPLEMENTATION
+======================================================================
+Device: cuda (or cpu)
+Batch Size: 32
+Learning Rate: 0.01
+Number of Epochs: 10
+Embedding Dimension: 128
+======================================================================
+
+[Main] Loading datasets...
+[Dataset] Loading CIFAR-10 train set...
+[Dataset] Loading CIFAR-10 test set...
+[Dataset] Train samples: 50000, Test samples: 10000
+[Dataset] Each image split: Server gets (3, 32, 16), Client gets (3, 32, 16)
+[Main] Train batches: 1563, Test batches: 313
+
+[Main] Initializing Client (Bảo)...
+[ClientWorker] Initialized on cuda
+[ClientWorker] Embedding dimension: 128
+[Main] Initializing Server (Chiến)...
+[ServerCoordinator] Initialized on cuda
+[ServerCoordinator] Embedding dimension: 128
+
+[Main] Client parameters: 11,173,760
+[Main] Server parameters: 16,810
+
+======================================================================
+STARTING TRAINING
+======================================================================
+
+======================================================================
+Epoch 1/10
+======================================================================
+
+[Epoch 1] Train Loss: 2.1234, Train Accuracy: 0.4521
+
+[Epoch 1] Test Loss: 1.8945, Test Accuracy: 0.5234
+
+...
+
+[Epoch 10] Train Loss: 0.8234, Train Accuracy: 0.7812
+
+[Epoch 10] Test Loss: 0.9123, Test Accuracy: 0.7651
+
+======================================================================
+TRAINING SUMMARY
+======================================================================
+Final Train Loss: 0.8234
+Final Train Accuracy: 0.7812
+Final Test Loss: 0.9123
+Final Test Accuracy: 0.7651
+Loss Reduction: 1.3000
+Accuracy Improvement: 0.3291
+======================================================================
+
+✅ VFL Base System Training Complete!
+   - Loss decreased from 2.1234 to 0.8234
+   - Accuracy increased from 0.4521 to 0.7812
+
+🎉 GIAI ĐOẠN 1 HOÀN THÀNH!
+   Hãy báo cho tui để nhận PROMPT GIAI ĐOẠN 2 (Malicious Optimizer)!
 ```
 
-## 🔄 Migration from Vite
+## 📊 Key Metrics to Monitor
 
-This application has been modernized from a Vite + React setup to Next.js 15:
+- **Train Loss**: Should decrease from ~2.3 (random) towards ~0.5-0.8
+- **Train Accuracy**: Should increase from ~10% (random) towards ~75%+
+- **Test Loss**: Should show similar trend (validate model doesn't overfit)
+- **Test Accuracy**: Similar improvement expected
 
-### Key Improvements:
+## 🔧 Configuration
 
-1. **Server Components** - Better performance with server-side rendering
-2. **Automatic Code Splitting** - Optimized bundle sizes
-3. **Built-in API Routes** - Server-side data loading without separate backend
-4. **File-based Routing** - Intuitive App Router structure
-5. **Optimized Bundling** - Advanced tree-shaking and compression
-6. **TypeScript Strict Mode** - Enhanced type safety across the codebase
+Edit `main.py` to change hyperparameters:
 
-### Architecture Changes:
-
-- **Routing:** React Router → Next.js App Router
-- **Data Loading:** Client-side fetch → Server Components with async/await
-- **Components:** Monolithic → Separated client/server components
-- **Styling:** Maintained Tailwind CSS with updated v3.4 configuration
-- **Build Tool:** Vite → Next.js (Turbopack-ready)
-
-## 🎯 Usage
-
-### Home Page
-
-- Overview of the application
-- Quick access to visualization pages
-- Feature highlights
-
-### Topology & Dataflow Page (`/topology`)
-
-- **Experiment Selection:** Choose partition and specific run
-- **Playback Controls:** Step through or play training iterations
-- **Network Visualization:** View honest and byzantine workers connected to parameter server
-- **Real-time Metrics:** Track accuracy, loss, and learning rate at each iteration
-- **Experiment Details:** View complete metadata for selected run
-
-### Comparative Metrics Page (`/compare`)
-
-- **Filtering:** Filter runs by partition, optimizer, and attack type
-- **Visual Comparison:** Compare up to 6 runs with overlaid line charts
-- **Detailed Table:** Sortable table with all metrics
-- **Selection:** Toggle individual runs for detailed comparison
-- **Statistics:** View mean and standard deviation of accuracy across runs
-
-## 🔍 Key Features
-
-### Data Loading Service (`src/lib/dataLoader.ts`)
-
-- **loadAllRuns()** - Load all available experimental runs
-- **loadPartitionRuns()** - Load runs from specific partition
-- **loadRunByName()** - Load specific run by name
-- **filterRuns()** - Filter runs by various criteria
-- **getRunsSummary()** - Get aggregated statistics
-
-### Type Safety
-
-All data structures are strongly typed:
-- `RunData` - Complete run with metadata and iterations
-- `RunMeta` - Experiment configuration and results
-- `IterationPoint` - Per-iteration training metrics
-- `RunStatistics` - Aggregated statistics
-
-## 🌐 Browser Support
-
-- Chrome/Edge (recommended)
-- Firefox
-- Safari
-
-## 📝 Build for Production
-
-```bash
-npm run build
-npm run start
+```python
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+BATCH_SIZE = 32            # Change batch size
+LEARNING_RATE = 0.01       # Change learning rate
+NUM_EPOCHS = 10            # Change number of epochs
+EMBEDDING_DIM = 128        # Change embedding dimension
 ```
+
+## 📝 Module Descriptions
+
+### `dataset.py`
+- **VFLCIFARDataset**: Custom PyTorch Dataset that:
+  - Loads CIFAR-10 images (3 × 32 × 32)
+  - Splits vertically into half_A and half_B (each 3 × 32 × 16)
+  - Returns `(half_A, half_B, label)`
+
+### `client_bao.py`
+- **BottomModel**: Modified ResNet-18 that accepts (3 × 32 × 16) input
+  - First conv layer: 3 → 32 channels with stride=1
+  - Outputs 128-dim embedding
+  
+- **ClientWorker**: Manages Client's training
+  - `forward()`: Processes half_B → embedding
+  - `backward()`: Receives gradient from Server, updates weights
+
+### `server_chien.py`
+- **BottomModelServer**: Simple CNN for Server's half image
+  - Processes half_A (3 × 32 × 16)
+  - Outputs 128-dim embedding
+
+- **TopModel**: FCNN-4 for final classification
+  - Input: 256-dim (128+128 concatenated)
+  - Hidden layers: 256 → 256 → 128 → 10 classes
+  
+- **ServerCoordinator**: Orchestrates training
+  - `forward_and_loss()`: Computes loss
+  - `compute_gradients_and_update()`: Backprop, returns gradient for Client
+
+### `main.py`
+- Training loop with Split Learning orchestration
+- Epoch-based training with train/test evaluation
+- Metrics tracking and final summary
+
+## ✅ Success Criteria
+
+Training is successful when:
+
+1. ✅ Code runs without errors
+2. ✅ Loss **decreases** from Epoch 1 to Epoch 10
+3. ✅ Accuracy **increases** from Epoch 1 to Epoch 10
+4. ✅ No NaN or Inf values in loss/accuracy
+5. ✅ Final accuracy > 50% (ideally > 70%)
 
 ## 🐛 Troubleshooting
 
-If you encounter issues:
+### Issue: CUDA out of memory
+- Reduce `BATCH_SIZE` in `main.py`
+- Use CPU: `DEVICE = torch.device('cpu')`
 
-1. Clear `.next` folder: `rm -rf .next`
-2. Reinstall dependencies: `rm -rf node_modules && npm install`
-3. Check Node.js version: Requires Node.js 18.17 or later
+### Issue: Loss is NaN
+- Reduce `LEARNING_RATE`
+- Check data normalization in `dataset.py`
 
-## 📄 License
+### Issue: Slow training
+- Ensure CUDA is being used: Check output shows "Device: cuda"
+- Reduce `NUM_EPOCHS` for testing
 
-Private - Educational Project
+### Issue: Import errors
+- Ensure all dependencies installed: `pip install -r requirements.txt`
+- Use Python 3.8+ and PyTorch 2.0+
 
-## 👥 Authors
+## 📚 References
 
-Built for IE105 - Web Development Course
+- CIFAR-10 Dataset: https://www.cs.toronto.edu/~kriz/cifar.html
+- PyTorch Documentation: https://pytorch.org/docs/
+- ResNet Paper: https://arxiv.org/abs/1512.03385
+
+## 🎯 Next Steps (GIAI ĐOẠN 2)
+
+Once this Base VFL system runs successfully with decreasing loss and increasing accuracy:
+
+1. Contact the instructor for **PROMPT GIAI ĐOẠN 2**
+2. Implement Malicious Optimizer for label stealing
+3. Add Byzantine attack capabilities
+4. Implement defense mechanisms
 
 ---
 
-**Note:** This application uses real experimental data from federated learning research. The visualizations help understand the impact of different:
-- Data partition strategies (IID, Dirichlet, Label Separation)
-- Byzantine attack types (Label Flipping, Furthest Label Flipping)
-- Aggregation methods (Mean, Trimmed Mean, CC, LFighter, FABA)
-- Optimizers (CSGD, CMomentum)
+**Happy Coding! 🚀**

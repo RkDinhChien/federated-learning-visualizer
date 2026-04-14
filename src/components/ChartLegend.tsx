@@ -38,8 +38,8 @@ export default function ChartLegend({ type }: ChartLegendProps) {
             </div>
           </div>
           <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2">
-            <p className="font-semibold text-yellow-900">💡 Tip:</p>
-            <p className="text-yellow-800">Click <strong>Play ▶️</strong> to animate the attack. Watch bars turn red as labels are flipped!</p>
+            <p className="font-semibold text-yellow-900">Tip:</p>
+            <p className="text-yellow-800">Click <strong>Play</strong> to animate the attack and compare distribution shifts.</p>
           </div>
         </CardContent>
       </Card>
@@ -58,7 +58,7 @@ export default function ChartLegend({ type }: ChartLegendProps) {
         <CardContent className="text-xs space-y-2">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="font-semibold mb-1">📊 Axes</p>
+              <p className="font-semibold mb-1">Axes</p>
               <ul className="space-y-1 ml-2">
                 <li>• <strong>X-axis</strong> = Training iterations (0→20K)</li>
                 <li>• <strong>Y-axis</strong> = Test accuracy (0%→100%)</li>
@@ -66,7 +66,7 @@ export default function ChartLegend({ type }: ChartLegendProps) {
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-1">🎨 Line Colors</p>
+              <p className="font-semibold mb-1">Line Colors</p>
               <ul className="space-y-1 ml-2">
                 <li>• <span className="text-red-600">Red</span> = mean (vulnerable)</li>
                 <li>• <span className="text-yellow-600">Yellow</span> = trimmed_mean</li>
@@ -77,7 +77,7 @@ export default function ChartLegend({ type }: ChartLegendProps) {
             </div>
           </div>
           <div className="bg-green-50 border border-green-300 rounded p-2 mt-2">
-            <p className="font-semibold text-green-900">✅ Key Insight:</p>
+            <p className="font-semibold text-green-900">Key Insight:</p>
             <p className="text-green-800">Lines going up = model learning. Flat/down = poisoned by Byzantine attack!</p>
           </div>
         </CardContent>
@@ -124,7 +124,7 @@ export default function ChartLegend({ type }: ChartLegendProps) {
             </div>
           </div>
           <div className="bg-purple-50 border border-purple-300 rounded p-2 mt-2">
-            <p className="font-semibold text-purple-900">👆 Interaction:</p>
+            <p className="font-semibold text-purple-900">Interaction:</p>
             <p className="text-purple-800">Hover over workers to see their status and accuracy!</p>
           </div>
         </CardContent>

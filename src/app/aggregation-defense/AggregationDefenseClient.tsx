@@ -211,7 +211,7 @@ export default function AggregationDefenseClient() {
       {/* Header */}
       <div className="space-y-3">
         <div className="inline-block px-4 py-2 bg-green-100 rounded-full text-sm font-medium mb-2">
-          🛡️ Defense Mechanisms
+          Defense Mechanisms
         </div>
         <h1 className="text-3xl font-bold">Aggregation Defense</h1>
         <p className="text-gray-600 text-base">
@@ -223,24 +223,24 @@ export default function AggregationDefenseClient() {
       <Alert className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
         <Info className="h-5 w-5 text-purple-600" />
         <AlertDescription>
-          <p className="font-semibold text-purple-900 mb-3">📖 Hướng Dẫn Nhanh - Cách Phòng Thủ Chống Tấn Công:</p>
+          <p className="font-semibold text-purple-900 mb-3">Hướng Dẫn Nhanh - Cách Phòng Thủ Chống Tấn Công:</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
             <div className="bg-blue-100 p-3 rounded-lg border border-blue-200">
-              <p className="font-semibold text-blue-900 mb-1">① Chọn Aggregator</p>
+              <p className="font-semibold text-blue-900 mb-1">Bước 1: Chọn Aggregator</p>
               <p className="text-xs text-blue-700">5 phương pháp: Mean (yếu) → FABA (mạnh nhất)</p>
             </div>
             <div className="bg-purple-100 p-3 rounded-lg border border-purple-200">
-              <p className="font-semibold text-purple-900 mb-1">② Nhấn Play ▶️</p>
+              <p className="font-semibold text-purple-900 mb-1">Bước 2: Nhấn Play</p>
               <p className="text-xs text-purple-700">Worker Byzantine (đỏ) gửi gradient ×5 để phá</p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg border border-green-200">
-              <p className="font-semibold text-green-900 mb-1">③ Xem Kết Quả</p>
+              <p className="font-semibold text-green-900 mb-1">Bước 3: Xem Kết Quả</p>
               <p className="text-xs text-green-700">Giá trị tổng hợp = 1.0 (tốt) hay {'>'} 2.0 (bị đầu độc)?</p>
             </div>
           </div>
           <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
             <p className="text-xs text-yellow-800">
-              <strong>💡 Ý Nghĩa:</strong> <span className="font-mono bg-white px-1">Mean</span> = trung bình thông thường (dễ bị lừa). 
+              <strong>Ý Nghĩa:</strong> <span className="font-mono bg-white px-1">Mean</span> = trung bình thông thường (dễ bị lừa). 
               <span className="font-mono bg-white px-1 mx-1">Trimmed Mean</span> = bỏ giá trị cực đoan. 
               <span className="font-mono bg-white px-1 mx-1">CC</span> = cắt gradient vượt ngưỡng. 
               <span className="font-mono bg-white px-1 mx-1">LFighter</span> = dùng loss để phát hiện. 
@@ -255,7 +255,7 @@ export default function AggregationDefenseClient() {
         <Info className="h-5 w-5 text-blue-600" />
         <AlertDescription className="ml-2">
           <div className="space-y-3">
-            <p className="font-semibold text-base text-blue-900">📚 Cách Hoạt Động Của Aggregation Phòng Thủ:</p>
+            <p className="font-semibold text-base text-blue-900">Cách Hoạt Động Của Aggregation Phòng Thủ:</p>
             
             <div className="space-y-2 text-sm text-blue-800">
               <p><strong>Tình huống:</strong> 10 workers (9 trung thực + 1 Byzantine) gửi gradient updates lên Parameter Server</p>
@@ -443,7 +443,7 @@ export default function AggregationDefenseClient() {
                 <div className="text-xs text-muted-foreground">Expected: {expectedHonestValue.toFixed(3)}</div>
                 <div className={`text-sm font-medium ${isPoisoned ? 'text-red-600' : 'text-green-600'}`}>
                   {isPoisoned ? (
-                    <>⚠️ Compromised</>
+                    <>Compromised</>
                   ) : (
                     <>✓ Defended</>
                   )}
@@ -606,7 +606,7 @@ function RealDataComparison() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          📊 Real Experiment Results - Accuracy Comparison
+          Real Experiment Results - Accuracy Comparison
         </CardTitle>
         <CardDescription>
           <div className="space-y-2">
