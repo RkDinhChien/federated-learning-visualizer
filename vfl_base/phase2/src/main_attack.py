@@ -6,15 +6,13 @@ Sau đó dùng MixMatch để tấn công thụ động
 
 import sys
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from pathlib import Path
 
 # Import từ phase1
-p = Path("D:/university_files/IE207/federated-learning-visualizer/vfl_base/phase1/src")
-sys.path.insert(0, str(p))
+p = Path(__file__).resolve().parents[2] / "phase1" / "src"
+if str(p) not in sys.path:
+    sys.path.insert(0, str(p))
 from dataset import VFLCIFARDataset, get_dataloaders
 from client_bao import BottomModel, ClientWorker
 from server_chien import ServerCoordinator
@@ -138,7 +136,7 @@ test_dataset = datasets.CIFAR10(
         transforms.Normalize((0.4914, 0.4822, 0.4465),
                            (0.2023, 0.1994, 0.2010))
     ]),
-    download=False
+    download=True
 )
 
 print("📊 Generating auxiliary labels (40 labeled samples)...")
@@ -191,7 +189,7 @@ asr = calculate_asr(
 print("\n" + "=" * 60)
 print("🎉 ATTACK COMPLETE".center(60))
 print("=" * 60)
-print(f"\n⏱️  Total Training Time: {sum(train_losses):.2f}")
+print(f"\n📊 Cumulative VFL Loss: {sum(train_losses):.2f}")
 print(f"📉 Final VFL Loss: {train_losses[-1]:.4f}")
 print(f"📈 Final VFL Accuracy: {train_accs[-1]:.2f}%")
 print(f"🥷 Attack Success Rate (ASR): {asr:.2f}%")
