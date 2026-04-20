@@ -71,38 +71,42 @@ class MaliciousSGD(optim.Optimizer):
                 # Bước 1 — Khởi tạo vector vận tốc bằng 0 ở lần đầu tiên
                 if 'v_theta' not in state:
                     state['v_theta'] = torch.zeros_like(p)
+                if 'v_last' not in state:
+                    state['v_last'] = torch.zeros_like(p)
 
                 v_theta = state['v_theta']
+                v_last = state['v_last']  # PREVIOUS step velocity
 
                 # Step 2 — Update velocity with momentum
                 # Bước 2 — Cập nhật vận tốc với momentum
                 # v_theta = beta * v_theta + (1 - beta) * g_theta
                 v_theta.mul_(beta).add_(g_theta, alpha=(1.0 - beta))
 
-                # Step 3 — Save current velocity as v_last
-                # Bước 3 — Lưu vận tốc hiện tại làm v_last
-                v_last = v_theta.clone()
-
-                # Step 4 — Compute amplification ratio
-                # Bước 4 — Tính tỷ lệ khuếch đại dựa trên dấu của tích v_theta * v_last
+                # Step 3 — Compute amplification ratio BEFORE updating v_last
+                # Bước 3 — Tính tỷ lệ khuếch đại dựa trên dấu của tích v_theta * v_last
                 # r_theta = 1.0 + gamma * sign(v_theta * v_last)
-                # Note: at this point v_theta == v_last, so sign is always >= 0,
-                # but this mirrors the algorithm exactly for t > 1 iterations.
+                # Now correctly computes sign(new_v * prev_v) for direction consistency
                 sign_product = torch.sign(v_theta * v_last)           # {-1, 0, +1}
                 r_theta = 1.0 + gamma * sign_product                  # amplification ratio
 
-                # Step 5 — Clamp ratio to [r_min, r_max]
-                # Bước 5 — Ràng buộc tỷ lệ trong khoảng [r_min, r_max]
+                # Step 4 — Clamp ratio to [r_min, r_max]
+                # Bước 4 — Ràng buộc tỷ lệ trong khoảng [r_min, r_max]
                 r_theta = torch.clamp(r_theta, min=r_min, max=r_max)
 
-                # Step 6 — Amplify velocity
-                # Bước 6 — Khuếch đại vận tốc
+                # Step 5 — Amplify velocity
+                # Bước 5 — Khuếch đại vận tốc
                 # v_theta = r_theta * v_last
-                v_theta_amplified = r_theta * v_last
-                state['v_theta'].copy_(v_theta_amplified)             # persist for next step
+                v_theta_amplified = r_theta * v_theta  # Apply amplification to updated velocity
 
-                # Step 7 — Update model weights
-                # Bước 7 — Cập nhật trọng số mô hình
+                # Step 6 — Update model weights
+                # Bước 6 — Cập nhật trọng số mô hình
+                # theta = theta - lr * v_theta
+                p.add_(v_theta_amplified, alpha=-lr)
+
+                # Step 7 — Persist current velocity for next step
+                # Bước 7 — Lưu vận tốc hiện tại cho bước tiếp theo
+                state['v_theta'].copy_(v_theta_amplified)
+                state['v_last'].copy_(v_theta)  # Save updated velocity for next iteration
                 # theta = theta - lr * v_theta
                 p.add_(v_theta_amplified, alpha=-lr)
 
