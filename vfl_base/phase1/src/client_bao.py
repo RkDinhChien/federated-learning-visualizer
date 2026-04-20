@@ -127,30 +127,31 @@ class ClientWorker:
         print(f"[ClientWorker] Optimizer: SGD(lr={learning_rate}, momentum={momentum})")
     
     def forward(self, half_B):
-        """
-        Forward pass: Process half_B through BottomModel.
-        
-        ⚠️ CRITICAL: NO torch.no_grad() here - we need computation graph intact!
-        
-        Args:
-            half_B: Input tensor (batch_size, 3, 32, 16) - Client's image portion
-        
-        Returns:
-            self.o_bao: Feature embedding (batch_size, embedding_dim)
-                        with computation graph preserved
-        """
-        self.model.train()
-
-        # ✅ Đảm bảo input luôn trên đúng device (tránh device mismatch)
-        half_B = half_B.to(self.device)
-        
-        # Forward pass - computation graph is automatically tracked
-        self.o_bao = self.model(half_B)
-        
-        # Verify requires_grad is True for gradient flow
-        assert self.o_bao.requires_grad, "[ClientWorker] ERROR: Output must have requires_grad=True!"
-        
-        return self.o_bao
+    """
+    Forward pass: Process half_B through BottomModel.
+    
+    ⚠️ CRITICAL: NO torch.no_grad() here - preserves computation graph when gradients enabled!
+    
+    Args:
+        half_B: Input tensor (batch_size, 3, 32, 16) - Client's image portion
+    
+    Returns:
+        self.o_bao: Feature embedding (batch_size, embedding_dim)
+                    with computation graph preserved (when torch.is_grad_enabled())
+    """
+    # FIXED: Don't force train mode - respect current model state (train/eval)
+    # The model state should be set externally via train_mode()/eval_mode()
+    
+    # Forward pass - computation graph is automatically tracked when gradients enabled
+    self.o_bao = self.model(half_B)
+    
+    # FIXED: Only enforce requires_grad when gradients are actually enabled
+    # During evaluation with @torch.no_grad(), this will be False and that's OK
+    if torch.is_grad_enabled():
+        assert self.o_bao.requires_grad, \
+            "[ClientWorker] ERROR: Output must have requires_grad=True when gradients are enabled!"
+    
+    return self.o_bao
     
     def backward(self, g_bao):
         """
