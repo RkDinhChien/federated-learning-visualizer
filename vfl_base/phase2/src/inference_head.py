@@ -14,6 +14,36 @@ from typing import Tuple, Optional
 
 
 # ──────────────────────────────────────────────────────────────
+#  0. VFL Image Split Helper
+# ──────────────────────────────────────────────────────────────
+
+def _split_client_half(images: torch.Tensor, side: str = "right") -> torch.Tensor:
+    """
+    Split full CIFAR-10 image (3×32×32) → client's half (3×32×16).
+    
+    VFL convention (phải khớp với dataset.py của phase1):
+        'right' → images[:, :, :, 16:]   ← mặc định cho Client (Bảo)
+        'left'  → images[:, :, :, :16]   ← Server (Chiến)
+    
+    Args:
+        images (Tensor): Full images, shape [B, 3, 32, 32].
+        side   (str)   : 'right' hoặc 'left'. Mặc định 'right'.
+    
+    Returns:
+        Tensor: Half images, shape [B, 3, 32, 16].
+    """
+    if images.dim() == 3:          # single image: [3, 32, 32]
+        images = images.unsqueeze(0)
+    
+    if side == "right":
+        return images[:, :, :, 16:]   # [B, 3, 32, 16] — Client half
+    elif side == "left":
+        return images[:, :, :, :16]   # [B, 3, 32, 16] — Server half
+    else:
+        raise ValueError(f"side must be 'right' or 'left', got '{side}'")
+
+
+# ──────────────────────────────────────────────────────────────
 #  1. InferenceHead
 # ──────────────────────────────────────────────────────────────
 
@@ -360,8 +390,9 @@ def train_inference_head(
             # ── Step 1-2: Encode through frozen BottomModel ─────
             # Bước 1-2: Mã hóa qua BottomModel đã đóng băng
             with torch.no_grad():
-                emb_x = bottom_model(batch_x)   # [B_x, emb_dim]
-                emb_u = bottom_model(batch_u)   # [B_u, emb_dim]
+                # Crop full image (3×32×32) → client half (3×32×16) trước khi encode
+                emb_x = bottom_model(_split_client_half(batch_x))   # [B_x, emb_dim]
+                emb_u = bottom_model(_split_client_half(batch_u))   # [B_u, emb_dim]
 
             # ── Step 3: Supervised loss on X ────────────────────
             # Bước 3: Tính loss có giám sát trên tập X
@@ -460,7 +491,8 @@ def calculate_asr(
 
         # Forward: BottomModel → InferenceHead → predictions
         # Truyền xuôi qua toàn bộ chuỗi để lấy dự đoán
-        emb     = bottom_model(imgs)
+        # Crop full image → client half trước khi đưa vào BottomModel
+        emb     = bottom_model(_split_client_half(imgs))
         logits  = inference_head(emb)
         preds   = logits.argmax(dim=1)
 

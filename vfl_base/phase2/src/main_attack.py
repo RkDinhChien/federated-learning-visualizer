@@ -85,6 +85,10 @@ for epoch in range(NUM_EPOCHS):
     epoch_total = 0
     
     for batch_idx, (half_A, half_B, labels) in enumerate(train_loader):
+        half_A  = half_A.to(DEVICE)
+        half_B  = half_B.to(DEVICE)
+        labels  = labels.to(DEVICE)
+
         # 🥷 Client forward (với tấn công)
         o_client = client.forward(half_B)
         
@@ -139,6 +143,8 @@ test_dataset = datasets.CIFAR10(
 
 print("📊 Generating auxiliary labels (40 labeled samples)...")
 X, U = generate_auxiliary_labels(test_dataset, num_labels=40)
+print(f"✅ X images shape: {X[0].shape}")   # Kỳ vọng: [40, 3, 32, 32]
+print(f"✅ U images shape: {U[0].shape}")   # Kỳ vọng: [9960, 3, 32, 32]
 print(f"✅ X (labeled): {len(X[0])} samples")
 print(f"✅ U (unlabeled): {len(U[0])} samples\n")
 
