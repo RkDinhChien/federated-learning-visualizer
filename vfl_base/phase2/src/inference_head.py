@@ -338,14 +338,14 @@ def generate_auxiliary_labels(
     unlabeled_indices = all_indices[num_labels:]
 
     def _collect(indices):
-    """Stack individual (image, label) samples into batched tensors."""
-    imgs, labels = [], []
-    for idx in indices:
-        img, lbl = dataset[int(idx)]
-        img = _validate_and_convert_image(img, expected_shape=(3, 32, 32))  # ✅ FIXED
-        imgs.append(img)
-        labels.append(int(lbl))
-    return torch.stack(imgs), torch.tensor(labels, dtype=torch.long)
+        """Stack individual (image, label) samples into batched tensors."""
+        imgs, labels = [], []
+        for idx in indices:
+            img, lbl = dataset[int(idx)]
+            img = _validate_and_convert_image(img, expected_shape=(3, 32, 32))  # ✅ FIXED
+            imgs.append(img)
+            labels.append(int(lbl))
+        return torch.stack(imgs), torch.tensor(labels, dtype=torch.long)
 
     print(f"[generate_auxiliary_labels] Collecting {num_labels} labeled samples …")
     images_X, labels_X = _collect(labeled_indices)
