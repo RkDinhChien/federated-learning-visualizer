@@ -45,10 +45,10 @@ if DEBUG_MODE:
     MAX_TRAIN_BATCHES = None   # chay het batch, chi giam epochs
     print("⚡ DEBUG MODE ON (5 VFL epochs, 30 inference epochs)")
 else:
-    NUM_EPOCHS        = 20
+    NUM_EPOCHS        = 25
     INFERENCE_EPOCHS  = 300
     INFERENCE_WARMUP  = 20
-    NUM_LABELS        = 200
+    NUM_LABELS        = 400
     MAX_TRAIN_BATCHES = None
 
 print(f"🚀 Device: {DEVICE}")
