@@ -260,7 +260,13 @@ def train_inference_head(
     K_augments: int = 2,
     device: str = "cuda",
     warmup_epochs: int = 20,
+    confidence_threshold: float = 0.85,
 ) -> nn.Module:
+    """
+    Train InferenceHead dung Pseudo-Label voi confidence threshold.
+    Chi dung unlabeled sample khi model du tu tin (max_prob > threshold).
+    Don gian hon MixMatch nhung hieu qua hon vi tranh nhiễu pseudo-label.
+    """
     bottom_model   = bottom_model.to(device)
     inference_head = inference_head.to(device)
 
@@ -269,43 +275,33 @@ def train_inference_head(
     bottom_model.eval()
 
     optimizer = optim.Adam(inference_head.parameters(), lr=lr, weight_decay=1e-4)
-    # StepLR: giam lr 50% moi 1/3 so epochs - on dinh hon CosineAnnealing voi it epochs
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=max(1, epochs//3), gamma=0.5)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-5)
 
     images_X, labels_X = X
     images_U, _        = U
-    num_classes        = 10
 
-    # DataLoaders tren RAW IMAGES (khong pre-compute) de tranh overfitting
     labeled_ds   = TensorDataset(images_X, labels_X)
     unlabeled_ds = TensorDataset(images_U)
 
-    # Loop chinh theo UNLABELED, labeled duoc cycle lai
     unlabeled_loader = DataLoader(unlabeled_ds, batch_size=batch_size, shuffle=True, drop_last=True)
     labeled_loader   = DataLoader(labeled_ds, batch_size=min(batch_size, len(images_X)),
                                   shuffle=True, drop_last=False)
 
+    ce_loss = nn.CrossEntropyLoss()
+
     sep = "-" * 60
     print(f"\n{sep}")
-    print(f"  MixMatch Training - {epochs} epochs")
-    print(f"  Labeled   : {len(images_X)} samples  ({len(labeled_loader)} batches/epoch)")
-    print(f"  Unlabeled : {len(images_U)} samples  ({len(unlabeled_loader)} batches/epoch)")
-    print(f"  Warmup    : {warmup_epochs} epochs (supervised only)")
-    print(f"  Device    : {device}")
+    print(f"  Pseudo-Label Training - {epochs} epochs")
+    print(f"  Labeled   : {len(images_X)} | Unlabeled: {len(images_U)}")
+    print(f"  Confidence threshold: {confidence_threshold}")
+    print(f"  Warmup: {warmup_epochs} epochs (supervised only)")
     print(f"{sep}\n")
-
-    ce_loss  = nn.CrossEntropyLoss()
-    mse_loss = nn.MSELoss()
-
-    # Embedding-space noise augmentation
-    def augment_emb(emb, noise_std=0.1):
-        return emb + torch.randn_like(emb) * noise_std
 
     for epoch in range(1, epochs + 1):
         inference_head.train()
-        epoch_loss_x = 0.0
-        epoch_loss_u = 0.0
+        epoch_loss   = 0.0
         n_batches    = 0
+        n_pseudo     = 0
 
         labeled_iter = iter(labeled_loader)
 
@@ -320,62 +316,54 @@ def train_inference_head(
             labels_x = labels_x.to(device)
             imgs_u   = imgs_u.to(device)
 
-            # Encode qua bottom_model (frozen)
             with torch.no_grad():
                 emb_x = bottom_model(_split_client_half(imgs_x)).detach()
                 emb_u = bottom_model(_split_client_half(imgs_u)).detach()
 
-            # Augment: noise + requires_grad=True de gradient chay qua InferenceHead
-            emb_x_aug = (emb_x + torch.randn_like(emb_x) * 0.1).requires_grad_(True)
-            emb_u_aug = (emb_u + torch.randn_like(emb_u) * 0.1).requires_grad_(True)
-
             # Supervised loss
-            logits_x = inference_head(emb_x_aug)
-            loss_x   = ce_loss(logits_x, labels_x)
+            emb_x_in = (emb_x + torch.randn_like(emb_x) * 0.05).requires_grad_(True)
+            loss = ce_loss(inference_head(emb_x_in), labels_x)
 
-            # Consistency loss (sau warmup)
+            # Unlabeled loss (sau warmup)
             if epoch > warmup_epochs:
                 with torch.no_grad():
                     inference_head.eval()
                     probs_u = F.softmax(inference_head(emb_u), dim=1)
-                    pseudo_u = sharpen(probs_u, temperature).detach()
                     inference_head.train()
 
-                probs_u_aug = F.softmax(inference_head(emb_u_aug), dim=1)
-                loss_u = mse_loss(probs_u_aug, pseudo_u)
-                total_loss = loss_x + lambda_u * loss_u
-            else:
-                loss_u     = torch.tensor(0.0)
-                total_loss = loss_x
+                if confidence_threshold > 0:
+                    # ── PSEUDO-LABEL: chi dung sample co do tin cao ───────
+                    max_probs, pseudo_labels = probs_u.max(dim=1)
+                    mask = max_probs >= confidence_threshold
+                    if mask.sum() > 0:
+                        emb_u_masked = emb_u[mask].requires_grad_(True)
+                        loss_u = ce_loss(inference_head(emb_u_masked), pseudo_labels[mask])
+                        loss = loss + lambda_u * loss_u
+                        n_pseudo += mask.sum().item()
+                else:
+                    # ── MIXMATCH: dung tat ca unlabeled voi soft pseudo-label
+                    pseudo_u = sharpen(probs_u, temperature).detach()
+                    emb_u_in = emb_u.requires_grad_(True)
+                    probs_u2 = F.softmax(inference_head(emb_u_in), dim=1)
+                    loss_u   = nn.MSELoss()(probs_u2, pseudo_u)
+                    loss = loss + lambda_u * loss_u
+                    n_pseudo += len(emb_u)
 
             optimizer.zero_grad()
-            total_loss.backward()
-
-            # DEBUG: in grad norm de xac nhan gradient co chay khong
-            if n_batches == 0 and epoch <= 3:
-                grad_norms = [p.grad.norm().item() for p in inference_head.parameters() if p.grad is not None]
-                no_grad    = sum(1 for p in inference_head.parameters() if p.grad is None)
-                print(f"  [GRAD DEBUG] epoch={epoch} | params_with_grad={len(grad_norms)} | no_grad={no_grad} | max_grad_norm={max(grad_norms) if grad_norms else 0:.6f}")
-
+            loss.backward()
             nn.utils.clip_grad_norm_(inference_head.parameters(), max_norm=5.0)
             optimizer.step()
 
-            epoch_loss_x += loss_x.item()
-            epoch_loss_u += loss_u.item() if isinstance(loss_u, torch.Tensor) else loss_u
-            n_batches    += 1
+            epoch_loss += loss.item()
+            n_batches  += 1
 
         scheduler.step()
 
-        avg_lx = epoch_loss_x / max(n_batches, 1)
-        avg_lu = epoch_loss_u / max(n_batches, 1)
+        if epoch % 20 == 0 or epoch <= 5:
+            tag = " [WARMUP]" if epoch <= warmup_epochs else f" [pseudo/batch={n_pseudo//max(n_batches,1):.0f}]"
+            print(f"Epoch {epoch:3d}/{epochs}{tag} -- Loss: {epoch_loss/max(n_batches,1):.4f}")
 
-        if epoch % 10 == 0 or epoch <= 5:
-            tag = " [WARMUP]" if epoch <= warmup_epochs else ""
-            print(f"Epoch {epoch:3d}/{epochs}{tag} -- Loss_X: {avg_lx:.4f}, Loss_U: {avg_lu:.4f}")
-
-    print(f"\n{sep}")
-    print("  Training complete.")
-    print(f"{sep}\n")
+    print(f"\n{sep}\n  Training complete.\n{sep}\n")
     return inference_head
 
 

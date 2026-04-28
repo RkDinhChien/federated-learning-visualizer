@@ -5,6 +5,7 @@ Sau đó dùng MixMatch để tấn công thụ động
 """
 
 import sys
+import argparse
 import torch
 from torchvision import datasets, transforms
 from pathlib import Path
@@ -36,7 +37,19 @@ NUM_EPOCHS    = 15
 EMBEDDING_DIM = 128
 
 # ── Debug mode: giam so luong de chay nhanh ──────────────
-DEBUG_MODE        = False   # <── doi thanh False khi chay that
+DEBUG_MODE        = False  # doi thanh True de chay nhanh khi debug
+
+# ── Chon phuong phap train InferenceHead qua CLI flag ─────
+# python main_attack.py --pseudolabel   (mac dinh)
+# python main_attack.py --mixmatch
+_parser = argparse.ArgumentParser()
+_group  = _parser.add_mutually_exclusive_group()
+_group.add_argument('--pseudolabel', action='store_true', help='Dung Pseudo-Label (mac dinh)')
+_group.add_argument('--mixmatch',    action='store_true', help='Dung MixMatch')
+_args = _parser.parse_args()
+INFERENCE_METHOD = "mixmatch" if _args.mixmatch else "pseudolabel"
+print(f"🔬 Inference method: {INFERENCE_METHOD.upper()}")
+
 if DEBUG_MODE:
     NUM_EPOCHS        = 5      # du de embedding hoi tu co ban
     INFERENCE_EPOCHS  = 30     # du de thay xu huong
@@ -46,8 +59,8 @@ if DEBUG_MODE:
     print("⚡ DEBUG MODE ON (5 VFL epochs, 30 inference epochs)")
 else:
     NUM_EPOCHS        = 25
-    INFERENCE_EPOCHS  = 300
-    INFERENCE_WARMUP  = 20
+    INFERENCE_EPOCHS  = 150
+    INFERENCE_WARMUP  = 15
     NUM_LABELS        = 400
     MAX_TRAIN_BATCHES = None
 
@@ -194,19 +207,35 @@ print("✅ InferenceHead created!\n")
 
 
 print("🎯 Training InferenceHead with MixMatch (improved)...\n")
-inference_head = train_inference_head(
-    bottom_model=client.model,
-    inference_head=inference_head,
-    X=X,
-    U=U,
-    epochs=INFERENCE_EPOCHS,
-    lr=1e-3,
-    batch_size=64,
-    lambda_u=1.0,
-    temperature=0.5,
-    warmup_epochs=INFERENCE_WARMUP,
-    device=DEVICE,
-)
+if INFERENCE_METHOD == "pseudolabel":
+    print("  Method: Pseudo-Label (confidence_threshold=0.85)\n")
+    inference_head = train_inference_head(
+        bottom_model=client.model,
+        inference_head=inference_head,
+        X=X, U=U,
+        epochs=INFERENCE_EPOCHS,
+        lr=1e-3,
+        batch_size=64,
+        lambda_u=1.0,
+        warmup_epochs=INFERENCE_WARMUP,
+        confidence_threshold=0.85,
+        device=DEVICE,
+    )
+else:  # mixmatch
+    print("  Method: MixMatch (lambda_u=1.0, temperature=0.5)\n")
+    inference_head = train_inference_head(
+        bottom_model=client.model,
+        inference_head=inference_head,
+        X=X, U=U,
+        epochs=INFERENCE_EPOCHS,
+        lr=1e-3,
+        batch_size=64,
+        lambda_u=1.0,
+        temperature=0.5,
+        warmup_epochs=INFERENCE_WARMUP,
+        confidence_threshold=0.0,  # tat threshold de dung MixMatch
+        device=DEVICE,
+    )
 
 # ============================================
 # Sanity check: supervised-only accuracy tren X
